@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Asiya — Portfolio</title>
+  <style>
+    :root {
+      --bg: #f4efe3;
+      --fg: #1c1a17;
+      --mut: #6b655a;
+      --card: #e8e1d0;
+      --acc: #c8281f;
+      box-sizing: border-box;
+      padding-top: env(safe-area-inset-top, 0px);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #14120f;
+        --fg: #f1ebdd;
+        --mut: #a39d90;
+        --card: #201d18;
+      }
+    }
+
+    :root[data-theme="dark"] {
+      --bg: #14120f;
+      --fg: #f1ebdd;
+      --mut: #a39d90;
+      --card: #201d18;
+    }
+
+    html {
+      scroll-padding-top: env(safe-area-inset-top, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      min-height: 100vh;
+    }
+
+    #c {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+      transition: filter .7s ease, opacity .7s ease;
+      background: #000;
+    }
+
+    #skip {
+      position: fixed;
+      right: 16px;
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+      z-index: 11;
+      background: none;
+      border: 1px solid #1c1a17;
+      color: #1c1a17;
+      font: inherit;
+      font-size: 12px;
+      padding: 6px 10px;
+      cursor: pointer;
+      opacity: .6;
+    }
+
+  </style>
+</head>
+<body>
+  <canvas id="c"></canvas>
+  <button id="skip">skip ›</button>
+  <script>
+    const F = {
+      A: [".###.", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+      S: [".####", "#....", "#....", ".###.", "....#", "....#", "####."],
+      I: ["#####", "..#..", "..#..", "..#..", "..#..", "..#..", "#####"],
+      Y: ["#...#", "#...#", ".#.#.", "..#..", "..#..", "..#..", "..#.."],
+      H: ["#...#", "#...#", "#...#", "#####", "#...#", "#...#", "#...#"],
+      E: ["#####", "#....", "#....", "####.", "#....", "#....", "#####"],
+      B: ["####.", "#...#", "#...#", "####.", "#...#", "#...#", "####."],
+      U: ["#...#", "#...#", "#...#", "#...#", "#...#", "#...#", ".###."],
+      G: [".####", "#....", "#....", "#.###", "#...#", "#...#", ".###."],
+      N: ["#...#", "##..#", "##..#", "#.#.#", "#..##", "#..##", "#...#"]
+    };
+    const SP = [
+      [
+        "..k......k..",
+        "...k....k...",
+        "....kkkk....",
+        "...kBBBBk...",
+        "..kBBbBBBk..",
+        "..kBBBBBBk..",
+        "...kBBBBk...",
+        "..kk.kk.kk.."
+      ],
+      [
+        "...k....k...",
+        "....kkkk....",
+        "...kRRRRk...",
+        "..kRkRRkRk..",
+        "..kRRRkRRk..",
+        "..kRkRRkRk..",
+        "...kRRRRk...",
+        "..kk.kk.kk.."
+      ],
+      [
+        "..ww....ww..",
+        ".wwww..wwww.",
+        "..wwwkkwww..",
+        "...kkkkkk...",
+        "..rkkggkkr..",
+        "...kkkkkk...",
+        "..k.k..k.k..",
+        "............"
+      ],
+      [
+        "..........k.",
+        "...GGGGG.GG.",
+        "..GGGGGGGGGk",
+        ".dGGGGGGGGG.",
+        "dd.d.d..G.G.",
+        "d..d.d.d.d..",
+        "d...........",
+        ".d.........."
+      ]
+    ];
+    const PAL = {
+      k: '#1c1a17',
+      B: '#2b6f7a',
+      b: '#6fc0cc',
+      R: '#d6342c',
+      g: '#8a8a8a',
+      w: '#bfe3ee',
+      r: '#d6342c',
+      G: '#6fb83a',
+      d: '#3d7a1e'
+    };
+    const INK = '#1c1a17',
+      RED = '#c8281f';
+    const HOPS = [[-13, 0], [2, 1], [14, 1], [25, 1], [9, 1], [30, 0]],
+      SPI = [0, 0, 1, 2, 3, 3];
+    const cv = document.getElementById('c'),
+      ctx = cv.getContext('2d'),
+      skip = document.getElementById('skip');
+    let W, H, s, done = false, parts = [], burst = false, poofed = {};
+
+    function size() {
+      const d = Math.min(devicePixelRatio || 1, 2);
+      W = innerWidth;
+      H = innerHeight;
+      cv.width = W * d;
+      cv.height = H * d;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+      s = Math.max(2, Math.floor(W * .94 / 96));
+    }
+
+    size();
+    addEventListener('resize', size);
+    const cl = x => Math.max(0, Math.min(1, x)),
+      eo = x => 1 - Math.pow(1 - cl(x), 3),
+      sm = x => {
+        x = cl(x);
+        return x * x * (3 - 2 * x);
+      };
+
+    function px(x, y, w, h, c) {
+      ctx.fillStyle = c;
+      ctx.fillRect(Math.round(x), Math.round(y), Math.ceil(w), Math.ceil(h));
+    }
+
+    function word(str, x, y, col, off) {
+      for (let i = 0; i < str.length; i++) {
+        const g = F[str[i]],
+          o = off ? off(i) : 0;
+        if (o === null) continue;
+        for (let r = 0; r < 7; r++) {
+          for (let c = 0; c < 5; c++) {
+            if (g[r][c] === '#') px(x + o + (i * 6 + c) * s, y + r * s, s, s, col);
+          }
+        }
+      }
+    }
+
+    function bug(k, x, y, sx, sy) {
+      const sp = SP[k];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 12; c++) {
+          const ch = sp[r][c];
+          if (ch !== '.') px(x + c * s * sx, y + r * s * sy, s * sx, s * sy, PAL[ch]);
+        }
+      }
+    }
+
+    function spawn(x, y, n) {
+      const cols = ['#d6342c', '#6fb83a', '#2b6f7a', '#1c1a17', '#e8b923'];
+      for (let i = 0; i < n; i++) {
+        parts.push({
+          x,
+          y,
+          vx: (Math.random() - .5) * s * 2.6,
+          vy: -Math.random() * s * 1.8,
+          l: 30 + Math.random() * 20,
+          c: cols[i % 5]
+        });
+      }
+    }
+
+    function open() {
+      if (done) return;
+      done = true;
+      cv.style.filter = 'blur(18px)';
+      cv.style.opacity = 0;
+      skip.style.opacity = 0;
+      setTimeout(() => {
+        window.location.href = 'index.html';
+      }, 700);
+    }
+
+    skip.onclick = open;
+    const t0 = performance.now();
+
+    function frame(now) {
+      if (done) return;
+      const t = now - t0;
+
+      ctx.save();
+      ctx.fillStyle = '#f4efe3';
+      ctx.fillRect(0, 0, W, H);
+      if (t >= 6150) {
+        ctx.restore();
+        open();
+        return;
+      }
+
+      const yt = Math.round(H / 2 - 3.5 * s),
+        cx = (W - 29 * s) / 2,
+        x0 = (W - 96 * s) / 2,
+        ax = cx + (x0 - cx) * sm((t - 3600) / 1000);
+      if (t > 5800) {
+        const a = 1 - (t - 5800) / 350;
+        ctx.translate((Math.random() - .5) * 2.5 * s * a, (Math.random() - .5) * 1.5 * s * a);
+      }
+
+      word('ASIYA', ax, yt, INK, i => {
+        const p = (t - i * 120) / 450;
+        return p <= 0 ? null : -(1 - eo(p)) * W * .6;
+      });
+      const pos = h => ({ x: ax + h[0] * s, y: h[1] ? yt - 8 * s : yt - s });
+
+      if (t >= 1000) {
+        let bx, by, k, sx = 1, sy = 1;
+        if (t < 4900) {
+          const n = Math.floor((t - 1000) / 650),
+            e = ((t - 1000) % 650) / 650,
+            a = n ? pos(HOPS[n - 1]) : { x: -14 * s, y: yt - s },
+            z = pos(HOPS[n]);
+          bx = a.x + (z.x - a.x) * e;
+          by = a.y + (z.y - a.y) * e - Math.sin(Math.PI * e) * 5 * s;
+          k = SPI[n];
+          if (n && SPI[n] !== SPI[n - 1] && e < .1 && !poofed[n]) {
+            poofed[n] = 1;
+            spawn(bx + 6 * s, by + 4 * s, 10);
+          }
+        } else {
+          const z = pos(HOPS[5]);
+          bx = z.x;
+          by = z.y;
+          k = SPI[5];
+          if (t > 5250 && t < 5500) bx += (Math.floor(t / 45) % 2 ? 1 : -1) * s;
+        }
+        if (t >= 5800) {
+          const q = cl((t - 5800) / 120);
+          sx = 1 - .67 * q;
+          sy = 1 + .15 * q;
+          by = by + 8 * s - 8 * s * sy;
+        }
+        bug(k, bx, by, sx, sy);
+      }
+
+      if (t >= 5500) {
+        const p = cl((t - 5500) / 300),
+          st = W + 10 * s;
+        let hx = st + ((ax + 43 * s) - st) * p * p * p;
+        if (t >= 5800) hx = ax + (43 - 9 * cl((t - 5800) / 120)) * s;
+        if (p < 1) {
+          ctx.globalAlpha = .18;
+          for (let g = 1; g <= 3; g++) word('HEISENBUG', hx + g * 5 * s, yt, RED);
+          ctx.globalAlpha = 1;
+        }
+        word('HEISENBUG', hx, yt, RED);
+      }
+
+      if (t >= 5800 && !burst) {
+        burst = true;
+        spawn(ax + 34 * s, yt + 4 * s, 30);
+      }
+      parts.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += s * .12;
+        p.l--;
+        if (p.l > 0) px(p.x, p.y, s, s, p.c);
+      });
+      if (t > 5800 && t < 5900) {
+        ctx.fillStyle = 'rgba(255,255,255,' + .9 * (1 - (t - 5800) / 100) + ')';
+        ctx.fillRect(-50, -50, W + 100, H + 100);
+      }
+      ctx.restore();
+      requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

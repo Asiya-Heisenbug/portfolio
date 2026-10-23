@@ -1,6 +1,13 @@
 const card = document.getElementById("card");
 const canvas = document.getElementById("lenticular");
 const ctx = canvas.getContext("2d");
+const soundtrack = document.getElementById("soundtrack");
+const musicToggle = document.getElementById("music-toggle");
+const musicStatus = document.getElementById("music-status");
+const typedIntro = document.getElementById("typed-intro");
+
+const introText =
+  "I’m a third-year BSc Computer Science (AI) student who loves building expressive front ends and pairing them with thoughtful back ends. I explore computer vision with OpenCV, make interactive experiments in TouchDesigner, and chase creative projects just because they sound fun. This is my sassy little corner of the internet. I’m cool. The work is, too.";
 
 const photoA = new Image();
 const photoB = new Image();
@@ -20,6 +27,89 @@ let mouseY = 0;
 let targetX = 0;
 let targetY = 0;
 let animationFrame = null;
+let entered = false;
+let typingTimer = null;
+
+soundtrack.addEventListener("play", () => {
+  musicToggle.textContent = "SOUND: ON";
+  musicToggle.setAttribute("aria-pressed", "true");
+  musicStatus.textContent = "";
+});
+
+soundtrack.addEventListener("pause", () => {
+  musicToggle.textContent = "SOUND: OFF";
+  musicToggle.setAttribute("aria-pressed", "false");
+});
+
+soundtrack.addEventListener("error", () => {
+  musicStatus.textContent = "Add sexyback.mp3 beside index.html to enable the soundtrack.";
+  musicToggle.textContent = "SOUND: MISSING";
+  musicToggle.setAttribute("aria-pressed", "false");
+});
+
+async function playSoundtrack() {
+  try {
+    await soundtrack.play();
+  } catch (error) {
+    musicStatus.textContent = "Add sexyback.mp3 beside index.html to enable the soundtrack.";
+    musicToggle.textContent = "SOUND: MISSING";
+    musicToggle.setAttribute("aria-pressed", "false");
+    console.warn("Could not play sexyback.mp3:", error);
+  }
+}
+
+function typeIntro() {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    typedIntro.textContent = introText;
+    return;
+  }
+
+  let index = 0;
+  function typeNextCharacter() {
+    typedIntro.textContent = introText.slice(0, index);
+    index += 1;
+    if (index <= introText.length) {
+      typingTimer = window.setTimeout(typeNextCharacter, 27);
+    }
+  }
+  typeNextCharacter();
+}
+
+function enterPortfolio() {
+  if (entered) return;
+  entered = true;
+
+  card.setAttribute("aria-pressed", "true");
+  card.blur();
+  card.style.transform = "";
+  document.body.classList.add("is-open");
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, 0);
+  window.setTimeout(() => {
+    window.scrollTo(0, 0);
+    window.requestAnimationFrame(() => {
+      document.documentElement.style.removeProperty("scroll-behavior");
+    });
+  }, 150);
+  playSoundtrack();
+  window.setTimeout(typeIntro, 1200);
+}
+
+card.addEventListener("click", enterPortfolio);
+card.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    enterPortfolio();
+  }
+});
+
+musicToggle.addEventListener("click", () => {
+  if (soundtrack.paused) {
+    playSoundtrack();
+  } else {
+    soundtrack.pause();
+  }
+});
 
 function preparePhoto(image) {
   const offscreen = document.createElement("canvas");
@@ -98,6 +188,11 @@ function render() {
 }
 
 function animate() {
+  if (entered) {
+    animationFrame = null;
+    return;
+  }
+
   mouseX += (targetX - mouseX) * 0.14;
   mouseY += (targetY - mouseY) * 0.14;
 
@@ -173,6 +268,8 @@ card.addEventListener("pointermove", (event) => {
 });
 
 card.addEventListener("pointerleave", () => {
+  if (entered) return;
+
   targetX = 0;
   targetY = 0;
   targetBlur = 0;
@@ -204,4 +301,8 @@ photoB.onerror = () => {
   console.error("Could not load photo-b.jpg");
 };
 
-window.addEventListener("resize", setupCanvas);
+if ("ResizeObserver" in window) {
+  new ResizeObserver(setupCanvas).observe(card);
+} else {
+  window.addEventListener("resize", setupCanvas);
+}

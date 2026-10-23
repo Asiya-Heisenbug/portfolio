@@ -1,19 +1,158 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Lenticular Portfolio</title>
-  <link rel="stylesheet" href="card.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#09090d">
+  <title>Asiya Heisenbug — Portfolio</title>
+  <link rel="stylesheet" href="card.css">
   <script src="card.js" defer></script>
 </head>
 <body>
-  <h1 class="portfolio-title">ASIYA HEISENBUG</h1>
-  <div class="portfolio-card" id="card">
-    <canvas id="lenticular"></canvas>
-    <div class="shine"></div>
-    <div class="card-label">ARUA</div>
+  <div class="entry-stage" id="entry-stage">
+    <div class="entry-brand" aria-hidden="true">
+      <span>ASIYA HEISENBUG</span>
+      <span>PORTFOLIO / 2026</span>
+    </div>
+    <div
+      class="portfolio-card"
+      id="card"
+      role="button"
+      tabindex="0"
+      aria-label="Open Asiya's portfolio"
+      aria-pressed="false"
+    >
+      <canvas id="lenticular"></canvas>
+      <div class="shine"></div>
+      <div class="card-label">ARUA</div>
+    </div>
+    <p class="click-hint">CLICK THE CARD TO ENTER <span>↗</span></p>
   </div>
+
+  <main class="site-content" id="top">
+    <header class="site-header">
+      <a class="wordmark" href="#top">ASIYA<span>®</span></a>
+      <nav aria-label="Main navigation">
+        <a href="#about">ABOUT</a>
+        <a href="#projects">PROJECTS</a>
+        <a href="#hobbies">HOBBIES</a>
+      </nav>
+      <button class="music-toggle" id="music-toggle" type="button" aria-pressed="false">
+        SOUND: OFF
+      </button>
+    </header>
+
+    <p class="music-status" id="music-status" role="status" aria-live="polite"></p>
+
+    <section class="about section-shell" id="about">
+      <p class="eyebrow"><span>01</span> THE PERSON BEHIND THE PIXELS</p>
+      <div class="about-copy">
+        <h1>Hi, I’m Asiya.<br><span class="accent-text">I make things</span> happen.</h1>
+        <p class="typewriter-copy">
+          <span id="typed-intro"></span><span class="cursor" aria-hidden="true"></span>
+        </p>
+      </div>
+      <div class="about-foot">
+        <span>THIRD-YEAR BSc COMPUTER SCIENCE (AI)</span>
+        <span>BUILT WITH CURIOSITY &amp; A LITTLE ATTITUDE</span>
+      </div>
+    </section>
+
+    <section class="projects section-shell" id="projects">
+      <div class="section-heading">
+        <p class="eyebrow"><span>02</span> THINGS I’VE BUILT</p>
+        <h2>Selected <span class="accent-text">projects</span></h2>
+      </div>
+      <div class="project-list">
+        <article class="project-row">
+          <div class="project-notes">
+            <span class="project-index">PROJECT 01 / PRIVACY + AI</span>
+            <p>A privacy-minded gateway exploring the detection and de-identification of PHI and PII.</p>
+          </div>
+          <a
+            class="project-link"
+            href="https://github.com/Asiya-Heisenbug/P2-PHI-PII-de-identification-gateway_"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="project-name">PHI / PII<br>GATEWAY</span>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+          </a>
+        </article>
+
+        <article class="project-row">
+          <div class="project-notes">
+            <span class="project-index">PROJECT 02 / AUDIO + STORY</span>
+            <p>An experiment in dialogue dubbing, where voices and storytelling meet a bit of code.</p>
+          </div>
+          <a
+            class="project-link"
+            href="https://github.com/Asiya-Heisenbug/Dialogue-dubber"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="project-name">DIALOGUE<br>DUBBER</span>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+          </a>
+        </article>
+
+        <article class="project-row">
+          <div class="project-notes">
+            <span class="project-index">PROJECT 03 / COMPUTER VISION</span>
+            <p>A playful gesture-led project bringing computer vision and meme energy together.</p>
+          </div>
+          <a
+            class="project-link"
+            href="https://github.com/Asiya-Heisenbug/meme_gesture_project"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="project-name">MEME<br>GESTURES</span>
+            <span class="project-arrow" aria-hidden="true">↗</span>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <section class="hobbies section-shell" id="hobbies">
+      <div class="section-heading">
+        <p class="eyebrow"><span>03</span> OFF THE SCREEN (SOMETIMES)</p>
+        <h2>Other ways I <span class="accent-text">make stuff</span></h2>
+        <p class="hobby-intro">
+          Photography, video editing, and painting — because apparently one canvas is never enough.
+        </p>
+      </div>
+      <div class="art-grid" aria-label="Painting gallery">
+        <figure class="artwork artwork-one">
+          <div class="art-placeholder" role="img" aria-label="Placeholder for Asiya's first painting">
+            <span>YOUR PAINTING</span>
+            <span>01</span>
+          </div>
+          <figcaption>PAINTING 01</figcaption>
+        </figure>
+        <figure class="artwork artwork-two">
+          <div class="art-placeholder" role="img" aria-label="Placeholder for Asiya's second painting">
+            <span>YOUR PAINTING</span>
+            <span>02</span>
+          </div>
+          <figcaption>PAINTING 02</figcaption>
+        </figure>
+        <figure class="artwork artwork-three">
+          <div class="art-placeholder" role="img" aria-label="Placeholder for Asiya's third painting">
+            <span>YOUR PAINTING</span>
+            <span>03</span>
+          </div>
+          <figcaption>PAINTING 03</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <span>MADE BY ASIYA, OBVIOUSLY.</span>
+      <a href="#top">BACK TO TOP ↑</a>
+    </footer>
+  </main>
+
+  <audio id="soundtrack" src="sexyback.mp3" preload="none" loop></audio>
 </body>
 </html>
